@@ -59,7 +59,7 @@ public class RecordingTest extends Camera2SurfaceViewTestCase {
     private static final boolean DEBUG_DUMP = Log.isLoggable(TAG, Log.DEBUG);
     private static final int RECORDING_DURATION_MS = 3000;
     private static final int DURATION_MARGIN_MS = 600;
-    private static final int FRAME_DURATION_ERROR_TOLERANCE_MS = 3;
+    private static final double FRAME_DURATION_ERROR_TOLERANCE_MS = 3.0;
     private static final int BIT_RATE_1080P = 16000000;
     private static final int BIT_RATE_MIN = 64000;
     private static final int BIT_RATE_MAX = 40000000;
@@ -368,7 +368,7 @@ public class RecordingTest extends Camera2SurfaceViewTestCase {
         Range<Integer> maxRange = availableFpsRanges[0];
         boolean foundRange = false;
         for (Range<Integer> range : availableFpsRanges) {
-            if (range.getLower() == range.getUpper() && range.getLower() >= maxRange.getLower()) {
+            if (range.getLower().equals(range.getUpper()) && range.getLower() >= maxRange.getLower()) {
                 foundRange = true;
                 maxRange = range;
             }
@@ -438,6 +438,7 @@ public class RecordingTest extends Camera2SurfaceViewTestCase {
      * given camera. preview size is set to the video size.
      */
     private void basicRecordingTestByCamera(int[] camcorderProfileList) throws Exception {
+        Size maxPreviewSize = mOrderedPreviewSizes.get(0);
         for (int profileId : camcorderProfileList) {
             int cameraId = Integer.valueOf(mCamera.getId());
             if (!CamcorderProfile.hasProfile(cameraId, profileId) ||
@@ -447,6 +448,12 @@ public class RecordingTest extends Camera2SurfaceViewTestCase {
 
             CamcorderProfile profile = CamcorderProfile.get(cameraId, profileId);
             Size videoSz = new Size(profile.videoFrameWidth, profile.videoFrameHeight);
+            if (mStaticInfo.isHardwareLevelLegacy() &&
+                    (videoSz.getWidth() > maxPreviewSize.getWidth() ||
+                     videoSz.getHeight() > maxPreviewSize.getHeight())) {
+                // Skip. Legacy mode can only do recording up to max preview size
+                continue;
+            }
             assertTrue("Video size " + videoSz.toString() + " for profile ID " + profileId +
                             " must be one of the camera device supported video size!",
                             mSupportedVideoSizes.contains(videoSz));
@@ -607,6 +614,10 @@ public class RecordingTest extends Camera2SurfaceViewTestCase {
             throws Exception {
         final int NUM_SINGLE_SHOT_TEST = 5;
         final int FRAMEDROP_TOLERANCE = 8;
+        final int FRAME_SIZE_15M = 15000000;
+        final float FRAME_DROP_TOLERENCE_FACTOR = 1.5f;
+        int kFrameDrop_Tolerence = FRAMEDROP_TOLERANCE;
+
         for (int profileId : mCamcorderProfileList) {
             int cameraId = Integer.valueOf(mCamera.getId());
             if (!CamcorderProfile.hasProfile(cameraId, profileId) ||
@@ -616,13 +627,20 @@ public class RecordingTest extends Camera2SurfaceViewTestCase {
 
             CamcorderProfile profile = CamcorderProfile.get(cameraId, profileId);
             Size videoSz = new Size(profile.videoFrameWidth, profile.videoFrameHeight);
+            Size maxPreviewSize = mOrderedPreviewSizes.get(0);
+
+            if (mStaticInfo.isHardwareLevelLegacy() &&
+                    (videoSz.getWidth() > maxPreviewSize.getWidth() ||
+                     videoSz.getHeight() > maxPreviewSize.getHeight())) {
+                // Skip. Legacy mode can only do recording up to max preview size
+                continue;
+            }
+
             if (!mSupportedVideoSizes.contains(videoSz)) {
                 mCollector.addMessage("Video size " + videoSz.toString() + " for profile ID " +
                         profileId + " must be one of the camera device supported video size!");
                 continue;
             }
-
-            Size maxPreviewSize = mOrderedPreviewSizes.get(0);
 
             // For LEGACY, find closest supported smaller or equal JPEG size to the current video
             // size; if no size is smaller than the video, pick the smallest JPEG size.  The assert
@@ -635,6 +653,8 @@ public class RecordingTest extends Camera2SurfaceViewTestCase {
                     videoSnapshotSz = candidateSize;
                 }
             }
+            if (videoSnapshotSz.getWidth() * videoSnapshotSz.getHeight() > FRAME_SIZE_15M)
+                kFrameDrop_Tolerence = (int)(FRAMEDROP_TOLERANCE * FRAME_DROP_TOLERENCE_FACTOR);
 
             /**
              * Only test full res snapshot when below conditions are all true.
@@ -748,8 +768,8 @@ public class RecordingTest extends Camera2SurfaceViewTestCase {
                                 "Camera %d Video size %s: Number of dropped frames %d must not"
                                 + " be larger than %d",
                                 cameraId, videoSz.toString(), totalDroppedFrames,
-                                FRAMEDROP_TOLERANCE),
-                        FRAMEDROP_TOLERANCE, totalDroppedFrames);
+                                kFrameDrop_Tolerence),
+                        kFrameDrop_Tolerence, totalDroppedFrames);
             }
             closeImageReader();
         }
@@ -974,7 +994,7 @@ public class RecordingTest extends Camera2SurfaceViewTestCase {
      */
     private int validateFrameDropAroundVideoSnapshot(
             SimpleCaptureCallback resultListener, long imageTimeStamp) {
-        int expectedDurationMs = 1000 / mVideoFrameRate;
+        double expectedDurationMs = 1000.0 / mVideoFrameRate;
         CaptureResult prevResult = resultListener.getCaptureResult(WAIT_FOR_RESULT_TIMEOUT_MS);
         long prevTS = getValueNotNull(prevResult, CaptureResult.SENSOR_TIMESTAMP);
         while (!resultListener.hasMoreResults()) {
@@ -986,7 +1006,7 @@ public class RecordingTest extends Camera2SurfaceViewTestCase {
                 CaptureResult nextResult =
                         resultListener.getCaptureResult(WAIT_FOR_RESULT_TIMEOUT_MS);
                 long nextTS = getValueNotNull(nextResult, CaptureResult.SENSOR_TIMESTAMP);
-                int durationMs = (int) (currentTS - prevTS) / 1000000;
+                double durationMs = (currentTS - prevTS) / 1000000.0;
                 int totalFramesDropped = 0;
 
                 // Snapshots in legacy mode pause the preview briefly.  Skip the duration
@@ -1005,7 +1025,7 @@ public class RecordingTest extends Camera2SurfaceViewTestCase {
                     if (durationMs >= expectedDurationMs * 2) {
                         Log.w(TAG, String.format(
                                 "Video %dx%d Frame drop detected before video snapshot: " +
-                                        "duration %dms (expected %dms)",
+                                        "duration %.2fms (expected %.2fms)",
                                 mVideoSize.getWidth(), mVideoSize.getHeight(),
                                 durationMs, expectedDurationMs
                         ));
@@ -1025,16 +1045,15 @@ public class RecordingTest extends Camera2SurfaceViewTestCase {
                     if (durationMs >= expectedDurationMs * 2) {
                         Log.w(TAG, String.format(
                                 "Video %dx%d Frame drop detected after video snapshot: " +
-                                        "duration %dms (expected %dms)",
+                                        "duration %fms (expected %fms)",
                                 mVideoSize.getWidth(), mVideoSize.getHeight(),
                                 durationMs, expectedDurationMs
                         ));
                     }
 
-                    int totalDurationMs = (int) (nextTS - prevTS) / 1000000;
-                    // Rounding and minus 2 for the expected 2 frames interval
-                    totalFramesDropped =
-                            (totalDurationMs + expectedDurationMs / 2) /expectedDurationMs - 2;
+                    double totalDurationMs = (nextTS - prevTS) / 1000000.0;
+                    // Minus 2 for the expected 2 frames interval
+                    totalFramesDropped = (int) (totalDurationMs / expectedDurationMs) - 2;
                     if (totalFramesDropped < 0) {
                         Log.w(TAG, "totalFrameDropped is " + totalFramesDropped +
                                 ". Video frame rate might be too fast.");
@@ -1053,19 +1072,19 @@ public class RecordingTest extends Camera2SurfaceViewTestCase {
      * Validate frame jittering from the input simple listener's buffered results
      */
     private void validateJittering(SimpleCaptureCallback resultListener) {
-        int expectedDurationMs = 1000 / mVideoFrameRate;
+        double expectedDurationMs = 1000.0 / mVideoFrameRate;
         CaptureResult prevResult = resultListener.getCaptureResult(WAIT_FOR_RESULT_TIMEOUT_MS);
         long prevTS = getValueNotNull(prevResult, CaptureResult.SENSOR_TIMESTAMP);
         while (!resultListener.hasMoreResults()) {
             CaptureResult currentResult =
                     resultListener.getCaptureResult(WAIT_FOR_RESULT_TIMEOUT_MS);
             long currentTS = getValueNotNull(currentResult, CaptureResult.SENSOR_TIMESTAMP);
-            int durationMs = (int) (currentTS - prevTS) / 1000000;
-            int durationError = Math.abs(durationMs - expectedDurationMs);
+            double durationMs = (currentTS - prevTS) / 1000000.0;
+            double durationError = Math.abs(durationMs - expectedDurationMs);
             long frameNumber = currentResult.getFrameNumber();
             mCollector.expectTrue(
                     String.format(
-                            "Resolution %dx%d Frame %d: jittering (%dms) exceeds bound [%dms,%dms]",
+                            "Resolution %dx%d Frame %d: jittering (%.2fms) exceeds bound [%.2fms,%.2fms]",
                             mVideoSize.getWidth(), mVideoSize.getHeight(),
                             frameNumber, durationMs,
                             expectedDurationMs - FRAME_DURATION_ERROR_TOLERANCE_MS,

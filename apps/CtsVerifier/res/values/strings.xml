@@ -26,6 +26,7 @@
     <!-- Strings for TestListActivity -->
     <string name="test_category_audio">Audio</string>
     <string name="test_category_camera">Camera</string>
+    <string name="test_category_car">Car</string>
     <string name="test_category_device_admin">Device Administration</string>
     <string name="test_category_hardware">Hardware</string>
     <string name="test_category_networking">Networking</string>
@@ -86,6 +87,15 @@
         device and verify that all rows in the policy list are green. Red items indicate policy
         settings that were not loaded properly.
     </string>
+    <string name="car_dock_test">Car Dock Test</string>
+    <string name="car_dock_test_desc">This test ensures that car mode opens the app associated with
+        car dock when going into car mode. Click on "Enable Car Mode" to start the test. Clicking on
+        the button will either bring up a disambiguation dialog asking which app to open or
+        immediately open the CAR_DOCK application. Select the "CTS Verifier" app if the dialog pops up,
+        which open the CAR_DOCK application. In the CAR_DOCK application, press the home button, which
+        will enable the pass button if the framework correctly tries to open the CAR_DOCk app again.</string>
+    <string name="car_mode_enable">Enable Car Mode</string>
+    <string name="car_dock_activity_text">Press the Home button</string>
     <string name="da_no_policy">1. Press the \"Generate Policy\" to create a random device
         policy\n\n2. Press \"Apply Policy\" to put the policy into effect.\n\n3. Reboot your
         device and return to this test in the CTS Verifier.
@@ -789,7 +799,7 @@
         \n\n3. Setup the test scene described in the CameraITS README file, and aim the camera
         at it.
         \n\n4. Run the full ITS test suite on all possible camera Ids.
-        (cd CameraITS; python tools/run_all_tests.py camera=[cameraId]).  Once all
+        (cd CameraITS; python tools/run_all_tests.py).  Once all
         of the tests have been run, the \'PASS\' button will be enabled if all of the tests have
         succeeded.  Please note that these tests can take 20+ minutes to run.
     </string>
@@ -797,8 +807,8 @@
         No camera manager exists!  This test device is in a bad state.
     </string>
     <string name="all_legacy_devices">
-        All cameras on this device are LEGACY mode only - ITS tests will only be applied to LIMITED
-        or better devices.  \'PASS\' button enabled.
+        All cameras on this device are LEGACY mode only - ITS tests are only required on LIMITED
+        or better devices.  Pass.
     </string>
     <string name="its_test_passed">All Camera ITS tests passed.  Pass button enabled!</string>
     <string name="its_test_failed">Some Camera ITS tests failed.</string>
@@ -1034,7 +1044,8 @@
         Location Provider API when the device is in High Accuracy location mode.
     </string>
     <string name="location_mode_select_high_accuracy">
-        Please select the \"High accuracy\" mode at Settings > Location and return here.
+        Please select the \"High accuracy\" mode at Settings > Location
+        (hint: tap the "Mode" item) and return here.
     </string>
     <string name="location_mode_battery_saving_test">Battery Saving Mode Test</string>
     <string name="location_mode_battery_saving_info">
@@ -1042,7 +1053,8 @@
         Location Provider API when the device is in Battery Saving location mode.
     </string>
     <string name="location_mode_select_battery_saving">
-        Please select the \"Battery Saving\" mode at Settings > Location and return here.
+        Please select the \"Battery Saving\" mode at Settings > Location
+        (hint: tap the "Mode" item) and return here.
     </string>
     <string name="location_mode_device_only_test">Device Only Mode Test</string>
     <string name="location_mode_device_only_info">
@@ -1051,7 +1063,7 @@
     </string>
     <string name="location_mode_select_device_only">
         Please select the \"Device Only\" mode at
-        Settings > Location and return here.
+        Settings > Location (hint: tap the "Mode" item) and return here.
     </string>
     <string name="location_mode_off_test">Location Mode Off Test</string>
     <string name="location_mode_off_info">
@@ -1117,6 +1129,39 @@
         1. A package installation UI should appear.\n
         2. Verify that the installation of the package is refused.
     </string>
+
+    <string name="provisioning_byod_capture_image_support">Camera support cross profile image capture</string>
+    <string name="provisioning_byod_capture_image_support_info">
+        This test verifies that images can be captured from the managed profile using the primary profile camera.\n
+        1. Capture a picture using the camera.\n
+        2. Verify that the captured picture is shown.\n
+        3. Click on the close button.
+    </string>
+    <string name="provisioning_byod_capture_video_support">Camera support cross profile video capture</string>
+    <string name="provisioning_byod_capture_video_support_info">
+        This test verifies that videos can be captured from the managed profile using the primary profile camera.\n
+        1. Capture a video using the camera.\n
+        2. Click on the play button.\n
+        3. Verify that the captured video is played.\n
+        4. Click on the close button.
+    </string>
+    <string name="provisioning_byod_capture_audio_support">Sound recorder support cross profile audio capture</string>
+    <string name="provisioning_byod_capture_audio_support_info">
+        This test verifies that audio can be captured from the managed profile using the primary profile sound recorder.\n
+        1. Capture audio.\n
+        2. Click on the play button.\n
+        3. Verify that the captured audio is played.\n
+        4. Click on the close button.\n
+    </string>
+    <string name="provisioning_byod_dismiss_result_dialog">Close</string>
+    <string name="provisioning_byod_play">Play</string>
+    <string name="provisioning_byod_verify_image_title">Verify captured image</string>
+    <string name="provisioning_byod_verify_video_title">Verify captured video</string>
+    <string name="provisioning_byod_verify_audio_title">Verify captured audio</string>
+    <string name="provisioning_byod_no_image_capture_resolver">No image capture app present. Skip test.</string>
+    <string name="provisioning_byod_no_video_capture_resolver">No video capture app present. Skip test.</string>
+    <string name="provisioning_byod_no_audio_capture_resolver">No audio capture app present. Skip test.</string>
+    <string name="provisioning_byod_capture_media_error">Error while capturing media from managed profile.</string>
 
     <!-- Strings for DeskClock -->
     <string name="deskclock_tests">Alarms and Timers Tests</string>
@@ -1271,8 +1316,8 @@
     </string>
     <string name="provisioning_byod_profileowner">Profile owner installed</string>
     <string name="provisioning_byod_diskencryption">Full disk encryption enabled</string>
-    <string name="provisioning_byod_profile_visible">Work profile visible in Settings</string>
-    <string name="provisioning_byod_admin_visible">Device administrator visible in Settings</string>
+    <string name="provisioning_byod_profile_visible">Profile-aware accounts settings</string>
+    <string name="provisioning_byod_admin_visible">Profile-aware device administrator settings</string>
     <string name="provisioning_byod_workapps_visible">Badged work apps visible in Launcher</string>
     <string name="provisioning_byod_cross_profile">Open app cross profiles</string>
     <string name="provisioning_byod_cross_profile_app_personal">
@@ -1321,6 +1366,47 @@
         \n
         Then navigate back to this screen using Recents button.
     </string>
+
+    <string name="provisioning_byod_app_settings">Profile-aware app settings</string>
+    <string name="provisioning_byod_app_settings_instruction">
+        Please press the Go button to open Apps page in settings.\n
+        \n
+        Verify that work profile exists in the dropdown list and selecting it will
+        bring up apps setting in the work profile.\n
+        \n
+        Then use the Back button to return to this test and mark accordingly.
+    </string>
+
+    <string name="provisioning_byod_location_settings">Profile-aware location settings</string>
+    <string name="provisioning_byod_location_settings_instruction">
+        Please press the Go button to open Location page in settings.\n
+        \n
+        Verify that work profile entry exists in the page.\n
+        \n
+        Then use the Back button to return to this test and mark accordingly.
+    </string>
+
+    <string name="provisioning_byod_cred_settings">Profile-aware trusted credential settings</string>
+    <string name="provisioning_byod_cred_settings_instruction">
+        Please press the Go button to open the Security settings.
+        Navigate to "Trusted credentials" and wait for the UI to load.
+        After the list is loaded, confirm that:\n
+        \n
+        The page list credentials for both "Personal" and "Work" profiles.\n
+        \n
+        Then use the Back button to return to this test and mark accordingly.
+    </string>
+
+    <string name="provisioning_byod_print_settings">Profile-aware printing settings</string>
+    <string name="provisioning_byod_print_settings_instruction">
+        Please press the Go button to open the Printing settings.
+        \n
+        Verify that work profile exists in the dropdown list and selecting it will
+        bring up printing setting in the work profile.\n
+        \n
+        Then use the Back button to return to this test and mark accordingly.
+    </string>
+
     <string name="provisioning_byod_no_activity">Cannot communicate with activity in the work profile.</string>
     <string name="provisioning_byod_delete_profile">Initiate deletion of work profile.</string>
     <string name="provisioning_byod_profile_deleted">Work profile deleted.</string>
@@ -1388,6 +1474,18 @@
     Overlay view must be shown. Verify that there is a text view displaying \"Overlay View Dummy Text\"
     when you tune to the \"Dummy\" channel.
     </string>
+    <string name="tv_input_discover_test_verify_global_search">
+    Live Channels app should provide query results for 3rd-party input\'s channels and programs on
+    global search requests.
+    </string>
+    <string name="tv_input_discover_test_go_to_epg">
+    Press the \"Launch EPG\" button, and locate the channel named \"Dummy\".
+    </string>
+    <string name="tv_input_discover_test_verify_epg">
+    Do you see the programs named \"Dummy Program\" and its description
+    "Dummy Program Description" in the EPG?
+    </string>
+    <string name="tv_input_discover_test_yes">Yes</string>
 
     <string name="tv_parental_control_test">Live Channels app parental control test</string>
     <string name="tv_parental_control_test_info">
@@ -1415,14 +1513,15 @@
     </string>
 
     <string name="tv_launch_tv_app">Launch Live Channels</string>
+    <string name="tv_launch_epg">Launch EPG</string>
     <string name="tv_channel_not_found">
     CtsVerifier channel is not set up. Please set up before proceeding.
     </string>
 
-    <string name="tv_multiple_tracks_test">Live Channels app multiple tracks / subtitle test</string>
+    <string name="tv_multiple_tracks_test">Live Channels app closed captions and multi-audio test</string>
     <string name="tv_multiple_tracks_test_info">
-    This test verifies that the default Live Channels app invokes proper mulitple tracks / subtitle
-    APIs in the framework.
+    This test verifies that the default Live Channels app invokes proper mulitple tracks APIs in the
+    framework.
     </string>
     <string name="tv_multiple_tracks_test_select_subtitle">
     Press the \"Launch Live Channels\" button. Verify that the closed caption is off by default.

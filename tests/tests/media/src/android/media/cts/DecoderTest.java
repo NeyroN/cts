@@ -1043,7 +1043,7 @@ public class DecoderTest extends MediaPlayerTestBase {
     }
 
     public void testVP9Decode640x360() throws Exception {
-        testDecode(R.raw.video_640x360_webm_vp9_1638kbps_30fps_vorbis_stereo_128kbps_48000hz, 249);
+        testDecode(R.raw.video_640x360_webm_vp9_1600kbps_30fps_vorbis_stereo_128kbps_48000hz, 249);
     }
 
     public void testVP9Decode30fps1280x720Tv() throws Exception {
@@ -1121,7 +1121,7 @@ public class DecoderTest extends MediaPlayerTestBase {
 
     public void testCodecEarlyEOSHEVC() throws Exception {
         testCodecEarlyEOS(
-                R.raw.video_1280x720_mp4_hevc_1150kbps_30fps_aac_stereo_128kbps_48000hz,
+                R.raw.video_480x360_mp4_hevc_650kbps_30fps_aac_stereo_128kbps_48000hz,
                 120 /* eosframe */);
     }
 

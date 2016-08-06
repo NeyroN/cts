@@ -45,7 +45,8 @@ public class ManagedProfileTest extends BaseDevicePolicyTest {
         super.setUp();
 
         // We need multi user to be supported in order to create a profile of the user owner.
-        mHasFeature = mHasFeature && (getMaxNumberOfUsersSupported() > 1);
+        mHasFeature = mHasFeature && hasDeviceFeature(
+                "android.software.managed_users");
 
         if (mHasFeature) {
             mUserId = createManagedProfile();
@@ -208,7 +209,7 @@ public class ManagedProfileTest extends BaseDevicePolicyTest {
 
     // Test the bluetooth API from a managed profile.
     public void testBluetooth() throws Exception {
-        boolean mHasBluetooth = hasDeviceFeatures(new String[] {FEATURE_BLUETOOTH});
+        boolean mHasBluetooth = hasDeviceFeature(FEATURE_BLUETOOTH);
         if (!mHasFeature || !mHasBluetooth) {
             return ;
         }
@@ -221,6 +222,56 @@ public class ManagedProfileTest extends BaseDevicePolicyTest {
                 "testListenUsingRfcommWithServiceRecord", mUserId));
         assertTrue(runDeviceTestsAsUser(MANAGED_PROFILE_PKG, ".BluetoothTest",
                 "testGetRemoteDevice", mUserId));
+    }
+
+    public void testManagedContacts() throws Exception {
+        if (!mHasFeature) {
+            return;
+        }
+
+        try {
+            // Insert Primary profile Contacts
+            assertTrue(runDeviceTestsAsUser(MANAGED_PROFILE_PKG, ".ContactsTest",
+                    "testPrimaryProfilePhoneLookup_insertedAndfound", 0));
+            // Insert Managed profile Contacts
+            assertTrue(runDeviceTestsAsUser(MANAGED_PROFILE_PKG, ".ContactsTest",
+                    "testManagedProfilePhoneLookup_insertedAndfound", mUserId));
+
+            // Set cross profile caller id to enabled
+            assertTrue(runDeviceTestsAsUser(MANAGED_PROFILE_PKG, ".ContactsTest",
+                    "testSetCrossProfileCallerIdDisabled_false", mUserId));
+
+            // Managed user can use ENTERPRISE_CONTENT_FILTER_URI
+            // To access managed contacts but not primary contacts
+            assertTrue(runDeviceTestsAsUser(MANAGED_PROFILE_PKG, ".ContactsTest",
+                    "testManagedProfilePhoneLookup_canAccessEnterpriseContact", mUserId));
+            assertTrue(runDeviceTestsAsUser(MANAGED_PROFILE_PKG, ".ContactsTest",
+                    "testManagedProfilePhoneLookup_canNotAccessPrimaryContact", mUserId));
+
+            // Primary user can use ENTERPRISE_CONTENT_FILTER_URI
+            // To access both primary and managed contacts
+            assertTrue(runDeviceTestsAsUser(MANAGED_PROFILE_PKG, ".ContactsTest",
+                    "testPrimaryProfileEnterprisePhoneLookup_canAccessEnterpriseContact", 0));
+            assertTrue(runDeviceTestsAsUser(MANAGED_PROFILE_PKG, ".ContactsTest",
+                    "testPrimaryProfilePhoneLookup_canAccessPrimaryContact", 0));
+
+            // Set cross profile caller id to disabled
+            assertTrue(runDeviceTestsAsUser(MANAGED_PROFILE_PKG, ".ContactsTest",
+                    "testSetCrossProfileCallerIdDisabled_true", mUserId));
+
+            // Primary user cannot use ENTERPRISE_CONTENT_FILTER_URI to access managed contacts
+            assertTrue(runDeviceTestsAsUser(MANAGED_PROFILE_PKG, ".ContactsTest",
+                    "testPrimaryProfilePhoneLookup_canNotAccessEnterpriseContact", 0));
+            // Managed user cannot use ENTERPRISE_CONTENT_FILTER_URI to access primary contacts
+            assertTrue(runDeviceTestsAsUser(MANAGED_PROFILE_PKG, ".ContactsTest",
+                    "testManagedProfilePhoneLookup_canNotAccessPrimaryContact", mUserId));
+        } finally {
+            // Clean up in managed profile and primary profile
+            runDeviceTestsAsUser(MANAGED_PROFILE_PKG, ".ContactsTest",
+                    "testCurrentProfileContacts_removeContacts", mUserId);
+            runDeviceTestsAsUser(MANAGED_PROFILE_PKG, ".ContactsTest",
+                    "testCurrentProfileContacts_removeContacts", 0);
+        }
     }
 
     private void disableActivityForUser(String activityName, int userId)
